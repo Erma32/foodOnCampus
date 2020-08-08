@@ -31,7 +31,7 @@ const noLunchArray = ["-", "-"];
 async function init() {
   console.log("Getting menus, this may take a few moments...");
   const date = new Date();
-  const day = 1;
+  const day = date.getDay();
   const browser = await puppeteer.launch();
   let finnInnMenu = await getFinnInnMenu();
   let mopMenu = await getMopMenu();
