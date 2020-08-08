@@ -6,8 +6,7 @@ const port = 3000;
 const indexRoute = require("./routes/indexRoute");
 
 const finnInnUrl = "https://www.finninn.se/lunch-meny/";
-const mopUrl =
-  "https://morotenopiskan.se/lunch/";
+const mopUrl = "https://morotenopiskan.se/lunch/";
 const brygganUrl = "https://www.bryggancafe.se/";
 const hojdpunktenUrl = "http://restauranghojdpunkten.se/meny";
 const edisonUrl = "http://restaurangedison.se/lunch";
@@ -72,7 +71,7 @@ async function init() {
         (element) => element.innerText
       )
     );
-    if (day === 0) {
+    if (day === 0 || 6) {
       return ["-", "-", "-"];
     }
     //FinnInnWeekdays are +4
@@ -136,11 +135,19 @@ async function init() {
       )
     );
     let cleanedMenu = menu[1].split("\n").filter((element) => element !== "");
-    let dayIndex = cleanedMenu.indexOf(cleanedMenu.filter(element => element.includes(27))[0]);
+    let dayIndex = cleanedMenu.indexOf(
+      cleanedMenu.filter((element) => element.includes(date.getDate()))[0]
+    );
+    if (dayIndex === 0) {
+      return ["-", "-"];
+    } else {
       return [
         cleanedMenu[dayIndex + 1].substring(3),
-        cleanedMenu[dayIndex + 2].substring(3).includes('2.') ? cleanedMenu[dayIndex + 2].substring(3) : "-",
+        cleanedMenu[dayIndex + 2].substring(3).includes("2.")
+          ? cleanedMenu[dayIndex + 2].substring(3)
+          : "-",
       ];
+    }
   }
   async function getEdisonMenu() {
     const page = await browser.newPage();
