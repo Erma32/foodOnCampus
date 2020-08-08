@@ -10,6 +10,7 @@ const mopUrl = "https://morotenopiskan.se/lunch/";
 const brygganUrl = "https://www.bryggancafe.se/";
 const hojdpunktenUrl = "http://restauranghojdpunkten.se/meny";
 const edisonUrl = "http://restaurangedison.se/lunch";
+const inspiraUrl = "https://mediconvillage.se/sv/restaurant-inspira";
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
@@ -30,13 +31,14 @@ const noLunchArray = ["-", "-"];
 async function init() {
   console.log("Getting menus, this may take a few moments...");
   const date = new Date();
-  const day = date.getDay();
+  const day = 1;
   const browser = await puppeteer.launch();
   let finnInnMenu = await getFinnInnMenu();
   let mopMenu = await getMopMenu();
   let brygganMenu = await getBrygganMenu();
   let hojdpunktenMenu = await getHojdpunktenMenu();
   let edisonMenu = await getEdisonMenu();
+  let inspiraMenu = await getInspiraMenu();
   await browser.close();
   foodObject = {
     mop: {
@@ -58,6 +60,10 @@ async function init() {
     edisonMenu: {
       dagens: edisonMenu[1],
       veg: edisonMenu[0],
+    },
+    inspira: {
+      dagens: inspiraMenu[0],
+      veg: inspiraMenu[1],
     },
   };
   console.log("Menus ready to serve!");
@@ -182,6 +188,30 @@ async function init() {
         return noLunchArray;
     }
     return [splitMenu[indexDate], splitMenu[indexDate + 1]];
+  }
+  async function getInspiraMenu() {
+    const page = await browser.newPage();
+    await page.goto(inspiraUrl);
+    let menu = await page.evaluate(() =>
+      [...document.querySelectorAll(".owl-item")].map(
+        (element) => element.innerText
+      )
+    );
+    let splitMenu = [];
+    for (let i = 0; i < menu.length; i++) {
+      splitMenu.push(menu[i].split(/\r?\n/));
+    }
+    if (day === 6 || 0) {
+      return ["-", "-"];
+    }
+    let inspiraDagens = splitMenu[day][3];
+    let inspiraVeg = splitMenu[day][4];
+    return [
+      inspiraDagens.substr(
+        inspiraDagens.indexOf(" ", inspiraDagens.indexOf(" ") + 1)
+      ),
+      inspiraVeg.substr(inspiraVeg.indexOf(" ") + 1),
+    ];
   }
 }
 
