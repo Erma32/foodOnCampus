@@ -69,6 +69,9 @@ async function init() {
   console.log("Menus ready to serve!");
 
   async function getFinnInnMenu() {
+    if (day > 5 || day === 0) {
+      return ["-", "-", "-"];
+    }
     const page = await browser.newPage();
     await page.goto(finnInnUrl);
     //TODO Filter out unnecessary parts of array
@@ -77,14 +80,9 @@ async function init() {
         (element) => element.innerText
       )
     );
-    if (day === 0 || 6) {
-      return ["-", "-", "-"];
-    }
-    //FinnInnWeekdays are +4
-    let finnInnWeekday = day <= 5 ? day + 4 : 0;
+    let finnInnWeekday = day <= 5 ? day + 5 : 0;
     let splitWeekdayMenu = menu[finnInnWeekday].split("\n");
-    //index 3, 6, 8 contain Dagens, Sallad, Veg
-    return [splitWeekdayMenu[3], splitWeekdayMenu[8]];
+    return [splitWeekdayMenu[3], splitWeekdayMenu[7]];
   }
 
   async function getMopMenu() {
@@ -95,12 +93,18 @@ async function init() {
         (element) => element.innerText
       )
     );
+    if (menu) {
+      return noLunchArray;
+    }
     let splitMenu = menu[0].split("\n");
     //Position 0 & 4 contain the daily lunches in Swedish
     return [splitMenu[0], splitMenu[4]];
   }
 
   async function getBrygganMenu() {
+    if (day > 5 || day === 0) {
+      return noLunchArray;
+    }
     const page = await browser.newPage();
     await page.goto(brygganUrl);
     let menu = await page.evaluate(() =>
@@ -109,30 +113,15 @@ async function init() {
       )
     );
     let splitMenu = menu[0].split("\n").slice(6);
-    let weekdayString;
-    switch (day) {
-      case 1:
-        weekdayString = "Måndag:";
-        break;
-      case 2:
-        weekdayString = "Tisdag:";
-        break;
-      case 3:
-        weekdayString = "Onsdag:";
-        break;
-      case 4:
-        weekdayString = "Torsdag:";
-        break;
-      case 5:
-        weekdayString = "Fredag:";
-        break;
-      default:
-        return noLunchArray;
-    }
-    let dayIndex = splitMenu.indexOf(weekdayString);
+    const brygganDayArray = ["Måndag:", "Tisdag:", "Onsdag:", "Torsdag:", "Fredag:"];
+    let dayIndex = splitMenu.indexOf(brygganDayArray[day - 1]);
     return [splitMenu[dayIndex + 2], splitMenu[dayIndex + 4]];
   }
+
   async function getHojdpunktenMenu() {
+    if (day > 5 || day === 0) {
+      return ["-", "-"];
+    }
     const page = await browser.newPage();
     await page.goto(hojdpunktenUrl);
     let menu = await page.evaluate(() =>
@@ -144,18 +133,18 @@ async function init() {
     let dayIndex = cleanedMenu.indexOf(
       cleanedMenu.filter((element) => element.includes(date.getDate()))[0]
     );
-    if (dayIndex === 0) {
-      return ["-", "-"];
-    } else {
-      return [
-        cleanedMenu[dayIndex + 1].substring(3),
-        cleanedMenu[dayIndex + 2].substring(3).includes("2.")
-          ? cleanedMenu[dayIndex + 2].substring(3)
-          : "-",
-      ];
-    }
+    return [
+      cleanedMenu[dayIndex + 1].substring(3),
+      cleanedMenu[dayIndex + 2].substring(3).includes("2.")
+        ? cleanedMenu[dayIndex + 2].substring(3)
+        : "-",
+    ];
   }
+
   async function getEdisonMenu() {
+    if (day > 5 || day === 0) {
+      return noLunchArray;
+    }
     const page = await browser.newPage();
     await page.goto(edisonUrl);
     let menu = await page.evaluate(() =>
@@ -167,29 +156,14 @@ async function init() {
     for (let i = 0; i < menu.length; i++) {
       splitMenu.push(menu[i].split(/\r?\n/).shift());
     }
-    let indexDate;
-    switch (day) {
-      case 1:
-        indexDate = 0;
-        break;
-      case 2:
-        indexDate = 3;
-        break;
-      case 3:
-        indexDate = 6;
-        break;
-      case 4:
-        indexDate = 9;
-        break;
-      case 5:
-        indexDate = 12;
-        break;
-      default:
-        return noLunchArray;
-    }
-    return [splitMenu[indexDate], splitMenu[indexDate + 1]];
+    const edisonMenuIndex = [0, 3, 6, 9, 12];
+    return [splitMenu[edisonMenuIndex[day - 1]], splitMenu[edisonMenuIndex[day - 1] + 1]];
   }
+
   async function getInspiraMenu() {
+    if (day > 5 || day === 0) {
+      return ["-", "-"];
+    }
     const page = await browser.newPage();
     await page.goto(inspiraUrl);
     let menu = await page.evaluate(() =>
@@ -201,23 +175,21 @@ async function init() {
     for (let i = 0; i < menu.length; i++) {
       splitMenu.push(menu[i].split(/\r?\n/));
     }
-    if (day === 6 || 0) {
-      return ["-", "-"];
-    }
-    let inspiraDagens = splitMenu[day][3];
-    let inspiraVeg = splitMenu[day][4];
+    let inspiraDagens = splitMenu[day - 1][3];
+    let inspiraVeg = splitMenu[day - 1][4];
     return [
       inspiraDagens.substr(
         inspiraDagens.indexOf(" ", inspiraDagens.indexOf(" ") + 1)
       ),
       inspiraVeg.substr(inspiraVeg.indexOf(" ") + 1),
     ];
+    //Return menu without spaces.
   }
 }
 
 app.listen(
   port,
-  "0.0.0.0",
+  '0.0.0.0',
   console.log(`Server listening at: http://192.168.1.59:3000/home`),
   init()
 );
