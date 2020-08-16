@@ -93,7 +93,7 @@ async function init() {
         (element) => element.innerText
       )
     );
-    if (menu) {
+    if (!menu) {
       return noLunchArray;
     }
     let splitMenu = menu[0].split("\n");
