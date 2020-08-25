@@ -11,6 +11,7 @@ const brygganUrl = "https://www.bryggancafe.se/";
 const hojdpunktenUrl = "http://restauranghojdpunkten.se/meny";
 const edisonUrl = "http://restaurangedison.se/lunch";
 const inspiraUrl = "https://mediconvillage.se/sv/restaurant-inspira";
+const linnersUrl = "http://www.linnersmat.se/lunchmeny/";
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
@@ -39,6 +40,8 @@ async function init() {
   let hojdpunktenMenu = await getHojdpunktenMenu();
   let edisonMenu = await getEdisonMenu();
   let inspiraMenu = await getInspiraMenu();
+  let linnersMenu = await getLinnersMenu();
+  console.log(linnersMenu);
   await browser.close();
   foodObject = {
     mop: {
@@ -64,6 +67,10 @@ async function init() {
     inspira: {
       dagens: inspiraMenu[0],
       veg: inspiraMenu[1],
+    },
+    linners: {
+      dagens: linnersMenu[0],
+      veg: linnersMenu[1],
     },
   };
   console.log("Menus ready to serve!");
@@ -113,7 +120,13 @@ async function init() {
       )
     );
     let splitMenu = menu[0].split("\n").slice(6);
-    const brygganDayArray = ["Måndag:", "Tisdag:", "Onsdag:", "Torsdag:", "Fredag:"];
+    const brygganDayArray = [
+      "Måndag:",
+      "Tisdag:",
+      "Onsdag:",
+      "Torsdag:",
+      "Fredag:",
+    ];
     let dayIndex = splitMenu.indexOf(brygganDayArray[day - 1]);
     return [splitMenu[dayIndex + 2], splitMenu[dayIndex + 4]];
   }
@@ -135,7 +148,7 @@ async function init() {
     );
     return [
       cleanedMenu[dayIndex + 1].substring(3),
-      cleanedMenu[dayIndex + 2].substring(3).includes("2.")
+      cleanedMenu[dayIndex + 2].includes("2.")
         ? cleanedMenu[dayIndex + 2].substring(3)
         : "-",
     ];
@@ -157,7 +170,10 @@ async function init() {
       splitMenu.push(menu[i].split(/\r?\n/).shift());
     }
     const edisonMenuIndex = [0, 3, 6, 9, 12];
-    return [splitMenu[edisonMenuIndex[day - 1]], splitMenu[edisonMenuIndex[day - 1] + 1]];
+    return [
+      splitMenu[edisonMenuIndex[day - 1]],
+      splitMenu[edisonMenuIndex[day - 1] + 1],
+    ];
   }
 
   async function getInspiraMenu() {
@@ -185,11 +201,29 @@ async function init() {
     ];
     //Return menu without spaces.
   }
+
+  async function getLinnersMenu() {
+    if (day > 5 || day === 0) {
+      return ["-", "-"];
+    }
+    const page = await browser.newPage();
+    await page.goto(linnersUrl);
+    let menu = await page.evaluate(() =>
+      [...document.querySelectorAll(".et_pb_post")].map(
+        (element) => element.innerText
+      )
+    );
+    let splitMenu = [];
+    for (let i = 0; i < menu.length; i++) {
+      splitMenu.push(menu[i].split(/\r?\n/));
+    }
+    return [splitMenu[0][10].slice(0, -8), splitMenu[0][12].slice(0, -8)];
+  }
 }
 
 app.listen(
   port,
-  '0.0.0.0',
+  "0.0.0.0",
   console.log(`Server listening at: http://192.168.1.59:3000/home`),
   init()
 );

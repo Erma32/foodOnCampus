@@ -20,6 +20,8 @@ router.get("/", function (req, res) {
     edisonVeg: foodObject.edisonMenu.veg,
     inspiraDagens: foodObject.inspira.dagens,
     inspiraVeg: foodObject.inspira.veg,
+    linnersDagens: foodObject.linners.dagens,
+    linnersVeg: foodObject.linners.veg
   });
 });
 
