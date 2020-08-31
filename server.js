@@ -41,7 +41,6 @@ async function init() {
   let edisonMenu = await getEdisonMenu();
   let inspiraMenu = await getInspiraMenu();
   let linnersMenu = await getLinnersMenu();
-  console.log(linnersMenu);
   await browser.close();
   foodObject = {
     mop: {
@@ -121,7 +120,7 @@ async function init() {
     );
     let splitMenu = menu[0].split("\n").slice(6);
     const brygganDayArray = [
-      "Måndag:",
+      "Måndag",
       "Tisdag:",
       "Onsdag:",
       "Torsdag:",
