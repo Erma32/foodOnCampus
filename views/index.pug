@@ -3,6 +3,13 @@ extends layout
 block content
     div(class='container')
         h5(class='text-center' style="margin-top: 5px") Food on campus: #{date}
+        if weekend
+            h4(class='text-center') It's the Weeknd!
+            div(class='row')
+                div(class='col-3')
+                div(class='col-7')
+                    img(src='https://media1.tenor.com/images/e573232fbaa3c76f6c5b67fe3a788786/tenor.gif?itemid=15760080')
+                div(class='col-2')
         table(class='table table-striped table-sm')
             thead
                 tr
@@ -81,6 +88,17 @@ block content
                     th(scope='col') 115/105kr
                     td= linnersDagens
                     td= linnersVeg
+            thead
+                tr
+                    th(scope='col')
+                        a(href='https://restaurangspill.se/' target='_blank' rel='noopener') Spill
+                    th(scope='col') Dagens
+                    th(scope='col') Veg
+            tbody
+                tr
+                    th(scope='col') 95kr
+                    td= spillDagens
+                    td= spillVeg
     footer(class="page-footer font-small fixed-bottom indigo bg-light")
         div(class="text-center")
             a(href='https://github.com/Erma32/foodOnCampus' target='_blank' rel='noopener') GitHub

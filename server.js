@@ -12,6 +12,7 @@ const hojdpunktenUrl = "http://restauranghojdpunkten.se/meny";
 const edisonUrl = "http://restaurangedison.se/lunch";
 const inspiraUrl = "https://mediconvillage.se/sv/restaurant-inspira";
 const linnersUrl = "http://www.linnersmat.se/lunchmeny/";
+const spillUrl = "https://restaurangspill.se/";
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
@@ -26,13 +27,51 @@ app.use(
   indexRoute
 );
 
-let foodObject = {};
+let foodObject = {
+  weekend: false,
+  mop: {
+    dagens: "-",
+    veg: "-",
+  },
+  finnInn: {
+    dagens: "-",
+    veg: "-",
+  },
+  bryggan: {
+    dagens: "-",
+    veg: "-",
+  },
+  hojdpunkten: {
+    dagens: "-",
+    dagens2: "-",
+  },
+  edisonMenu: {
+    dagens: "-",
+    veg: "-",
+  },
+  inspira: {
+    dagens: "-",
+    veg: "-",
+  },
+  linners: {
+    dagens: "-",
+    veg: "-",
+  },
+  spill: {
+    dagens: "-",
+    veg: "-",
+  },
+};
 const noLunchArray = ["-", "-"];
 
 async function init() {
   console.log("Getting menus, this may take a few moments...");
   const date = new Date();
   const day = date.getDay();
+  if (day > 5 || day === 0) {
+    foodObject.weekend = true;
+    throw "It's the weekend!";
+  }
   const browser = await puppeteer.launch();
   let finnInnMenu = await getFinnInnMenu();
   let mopMenu = await getMopMenu();
@@ -41,6 +80,7 @@ async function init() {
   let edisonMenu = await getEdisonMenu();
   let inspiraMenu = await getInspiraMenu();
   let linnersMenu = await getLinnersMenu();
+  let spillMenu = await getSpillMenu();
   await browser.close();
   foodObject = {
     mop: {
@@ -71,16 +111,16 @@ async function init() {
       dagens: linnersMenu[0],
       veg: linnersMenu[1],
     },
+    spill: {
+      dagens: spillMenu[0],
+      veg: spillMenu[1],
+    },
   };
   console.log("Menus ready to serve!");
 
   async function getFinnInnMenu() {
-    if (day > 5 || day === 0) {
-      return ["-", "-", "-"];
-    }
     const page = await browser.newPage();
     await page.goto(finnInnUrl);
-    //TODO Filter out unnecessary parts of array
     let menu = await page.evaluate(() =>
       [...document.getElementsByTagName("LI")].map(
         (element) => element.innerText
@@ -103,14 +143,10 @@ async function init() {
       return noLunchArray;
     }
     let splitMenu = menu[0].split("\n");
-    //Position 0 & 4 contain the daily lunches in Swedish
     return [splitMenu[0], splitMenu[4]];
   }
 
   async function getBrygganMenu() {
-    if (day > 5 || day === 0) {
-      return noLunchArray;
-    }
     const page = await browser.newPage();
     await page.goto(brygganUrl);
     let menu = await page.evaluate(() =>
@@ -131,9 +167,6 @@ async function init() {
   }
 
   async function getHojdpunktenMenu() {
-    if (day > 5 || day === 0) {
-      return ["-", "-"];
-    }
     const page = await browser.newPage();
     await page.goto(hojdpunktenUrl);
     let menu = await page.evaluate(() =>
@@ -154,9 +187,6 @@ async function init() {
   }
 
   async function getEdisonMenu() {
-    if (day > 5 || day === 0) {
-      return noLunchArray;
-    }
     const page = await browser.newPage();
     await page.goto(edisonUrl);
     let menu = await page.evaluate(() =>
@@ -176,9 +206,6 @@ async function init() {
   }
 
   async function getInspiraMenu() {
-    if (day > 5 || day === 0) {
-      return ["-", "-"];
-    }
     const page = await browser.newPage();
     await page.goto(inspiraUrl);
     let menu = await page.evaluate(() =>
@@ -202,9 +229,6 @@ async function init() {
   }
 
   async function getLinnersMenu() {
-    if (day > 5 || day === 0) {
-      return ["-", "-"];
-    }
     const page = await browser.newPage();
     await page.goto(linnersUrl);
     let menu = await page.evaluate(() =>
@@ -218,11 +242,29 @@ async function init() {
     }
     return [splitMenu[0][10].slice(0, -8), splitMenu[0][12].slice(0, -8)];
   }
+
+  async function getSpillMenu() {
+    const page = await browser.newPage();
+    await page.goto(spillUrl);
+    let menu = await page.evaluate(() =>
+      [...document.getElementsByTagName("H3")].map(
+        (element) => element.innerText
+      )
+    );
+    let splitMenu = [];
+    for (let i = 0; i < menu.length; i++) {
+      splitMenu.push(menu[i].split(/\r?\n/));
+    }
+    return [splitMenu[0][1], splitMenu[0][2]];
+  }
 }
+
+init().catch((error) => {
+  console.log("Could not get menus");
+  console.log(error);
+});
 
 app.listen(
   port,
-  "0.0.0.0",
-  console.log(`Server listening at: http://192.168.1.59:3000/home`),
-  init()
+  console.log(`Server listening at: http://localhost:3000/home`)
 );
