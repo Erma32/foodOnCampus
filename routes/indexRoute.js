@@ -8,6 +8,7 @@ router.get("/", function (req, res) {
   res.render("index", {
     title: "Food On Campus",
     date: `${date.getDate()}/${date.getMonth()}`,
+    weekend: foodObject.weekend,
     mopDagens: foodObject.mop.dagens,
     mopVeg: foodObject.mop.veg,
     finnDagens: foodObject.finnInn.dagens,
@@ -21,7 +22,9 @@ router.get("/", function (req, res) {
     inspiraDagens: foodObject.inspira.dagens,
     inspiraVeg: foodObject.inspira.veg,
     linnersDagens: foodObject.linners.dagens,
-    linnersVeg: foodObject.linners.veg
+    linnersVeg: foodObject.linners.veg,
+    spillDagens: foodObject.spill.dagens,
+    spillVeg: foodObject.spill.veg,
   });
 });
 
