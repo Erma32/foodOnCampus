@@ -119,143 +119,204 @@ async function init() {
   console.log("Menus ready to serve!");
 
   async function getFinnInnMenu() {
-    const page = await browser.newPage();
-    await page.goto(finnInnUrl);
-    let menu = await page.evaluate(() =>
-      [...document.getElementsByTagName("LI")].map(
-        (element) => element.innerText
-      )
-    );
-    let finnInnWeekday = day <= 5 ? day + 5 : 0;
-    let splitWeekdayMenu = menu[finnInnWeekday].split("\n");
-    return [splitWeekdayMenu[3], splitWeekdayMenu[7]];
+    try {
+      const page = await browser.newPage();
+      await page.goto(finnInnUrl);
+      let menu = await page.evaluate(() =>
+        [...document.getElementsByTagName("LI")].map(
+          (element) => element.innerText
+        )
+      );
+      let finnInnWeekday = day <= 5 ? day + 5 : 0;
+      let splitWeekdayMenu = menu[finnInnWeekday].split("\n");
+      return [splitWeekdayMenu[3], splitWeekdayMenu[7]];
+    } catch (error) {
+      logToConsole(1, "Could not retrieve FinnInn's menu", error);
+      return noLunchArray;
+    }
   }
 
   async function getMopMenu() {
-    const page = await browser.newPage();
-    await page.goto(mopUrl);
-    let menu = await page.evaluate(() =>
-      [...document.querySelectorAll(".event-info")].map(
-        (element) => element.innerText
-      )
-    );
-    if (!menu) {
+    try {
+      const page = await browser.newPage();
+      await page.goto(mopUrl);
+      let menu = await page.evaluate(() =>
+        [...document.querySelectorAll(".event-info")].map(
+          (element) => element.innerText
+        )
+      );
+      if (!menu) {
+        return noLunchArray;
+      }
+      let splitMenu = menu[0].split("\n");
+      return [splitMenu[0], splitMenu[4]];
+    } catch (error) {
+      logToConsole(1, "Could not retrieve MOP's menu", error);
       return noLunchArray;
     }
-    let splitMenu = menu[0].split("\n");
-    return [splitMenu[0], splitMenu[4]];
   }
 
   async function getBrygganMenu() {
-    const page = await browser.newPage();
-    await page.goto(brygganUrl);
-    let menu = await page.evaluate(() =>
-      [...document.querySelectorAll(".et_pb_text_inner")].map(
-        (element) => element.innerText
-      )
-    );
-    let splitMenu = menu[0].split("\n").slice(6);
-    const brygganDayArray = [
-      "Måndag",
-      "Tisdag:",
-      "Onsdag:",
-      "Torsdag:",
-      "Fredag:",
-    ];
-    let dayIndex = splitMenu.indexOf(brygganDayArray[day - 1]);
-    return [splitMenu[dayIndex + 2], splitMenu[dayIndex + 4]];
+    try {
+      const page = await browser.newPage();
+      await page.goto(brygganUrl);
+      let menu = await page.evaluate(() =>
+        [...document.querySelectorAll(".et_pb_text_inner")].map(
+          (element) => element.innerText
+        )
+      );
+      let splitMenu = menu[0].split("\n").slice(6);
+      const brygganDayArray = [
+        "Måndag",
+        "Tisdag:",
+        "Onsdag:",
+        "Torsdag:",
+        "Fredag:",
+      ];
+      let dayIndex = splitMenu.indexOf(brygganDayArray[day - 1]);
+      return [splitMenu[dayIndex + 2], splitMenu[dayIndex + 4]];
+    } catch (error) {
+      logToConsole(1, "Could not retrieve Bryggan's menu", error);
+      return noLunchArray;
+    }
   }
 
   async function getHojdpunktenMenu() {
-    const page = await browser.newPage();
-    await page.goto(hojdpunktenUrl);
-    let menu = await page.evaluate(() =>
-      [...document.querySelectorAll(".bk-content-text")].map(
-        (element) => element.innerText
-      )
-    );
-    let cleanedMenu = menu[1].split("\n").filter((element) => element !== "");
-    let dayIndex = cleanedMenu.indexOf(
-      cleanedMenu.filter((element) => element.includes(date.getDate()))[0]
-    );
-    return [
-      cleanedMenu[dayIndex + 1].substring(3),
-      cleanedMenu[dayIndex + 2].includes("2.")
-        ? cleanedMenu[dayIndex + 2].substring(3)
-        : "-",
-    ];
+    try {
+      const page = await browser.newPage();
+      await page.goto(hojdpunktenUrl);
+      let menu = await page.evaluate(() =>
+        [...document.querySelectorAll(".bk-content-text")].map(
+          (element) => element.innerText
+        )
+      );
+      let cleanedMenu = menu[1].split("\n").filter((element) => element !== "");
+      let dayIndex = cleanedMenu.indexOf(
+        cleanedMenu.filter((element) => element.includes(date.getDate()))[0]
+      );
+      return [
+        cleanedMenu[dayIndex + 1].substring(3),
+        cleanedMenu[dayIndex + 2].includes("2.")
+          ? cleanedMenu[dayIndex + 2].substring(3)
+          : "-",
+      ];
+    } catch (error) {
+      logToConsole(1, "Could not retrieve Hojdpunkten's menu", error);
+      return noLunchArray;
+    }
   }
 
   async function getEdisonMenu() {
-    const page = await browser.newPage();
-    await page.goto(edisonUrl);
-    let menu = await page.evaluate(() =>
-      [...document.querySelectorAll(".course_description")].map(
-        (element) => element.innerText
-      )
-    );
-    let splitMenu = [];
-    for (let i = 0; i < menu.length; i++) {
-      splitMenu.push(menu[i].split(/\r?\n/).shift());
+    try {
+      const page = await browser.newPage();
+      await page.goto(edisonUrl);
+      let menu = await page.evaluate(() =>
+        [...document.querySelectorAll(".course_description")].map(
+          (element) => element.innerText
+        )
+      );
+      let splitMenu = [];
+      for (let i = 0; i < menu.length; i++) {
+        splitMenu.push(menu[i].split(/\r?\n/).shift());
+      }
+      const edisonMenuIndex = [0, 3, 6, 9, 12];
+      return [
+        splitMenu[edisonMenuIndex[day - 1]],
+        splitMenu[edisonMenuIndex[day - 1] + 1],
+      ];
+    } catch (error) {
+      logToConsole(1, "Could not retrieve Edison's menu", error);
+      return noLunchArray;
     }
-    const edisonMenuIndex = [0, 3, 6, 9, 12];
-    return [
-      splitMenu[edisonMenuIndex[day - 1]],
-      splitMenu[edisonMenuIndex[day - 1] + 1],
-    ];
   }
 
   async function getInspiraMenu() {
-    const page = await browser.newPage();
-    await page.goto(inspiraUrl);
-    let menu = await page.evaluate(() =>
-      [...document.querySelectorAll(".owl-item")].map(
-        (element) => element.innerText
-      )
-    );
-    let splitMenu = [];
-    for (let i = 0; i < menu.length; i++) {
-      splitMenu.push(menu[i].split(/\r?\n/));
+    try {
+      const page = await browser.newPage();
+      await page.goto(inspiraUrl);
+      let menu = await page.evaluate(() =>
+        [...document.querySelectorAll(".owl-item")].map(
+          (element) => element.innerText
+        )
+      );
+      let splitMenu = [];
+      for (let i = 0; i < menu.length; i++) {
+        splitMenu.push(menu[i].split(/\r?\n/));
+      }
+      let inspiraDagens = splitMenu[day - 1][3];
+      let inspiraVeg = splitMenu[day - 1][4];
+      return [
+        inspiraDagens.substr(
+          inspiraDagens.indexOf(" ", inspiraDagens.indexOf(" ") + 1)
+        ),
+        inspiraVeg.substr(inspiraVeg.indexOf(" ") + 1),
+      ];
+    } catch (error) {
+      logToConsole(1, "Could not retrieve Inspira's menu", error);
+      return noLunchArray;
     }
-    let inspiraDagens = splitMenu[day - 1][3];
-    let inspiraVeg = splitMenu[day - 1][4];
-    return [
-      inspiraDagens.substr(
-        inspiraDagens.indexOf(" ", inspiraDagens.indexOf(" ") + 1)
-      ),
-      inspiraVeg.substr(inspiraVeg.indexOf(" ") + 1),
-    ];
-    //Return menu without spaces.
   }
 
   async function getLinnersMenu() {
-    const page = await browser.newPage();
-    await page.goto(linnersUrl);
-    let menu = await page.evaluate(() =>
-      [...document.querySelectorAll(".et_pb_post")].map(
-        (element) => element.innerText
-      )
-    );
-    let splitMenu = [];
-    for (let i = 0; i < menu.length; i++) {
-      splitMenu.push(menu[i].split(/\r?\n/));
+    try {
+      const page = await browser.newPage();
+      await page.goto(linnersUrl);
+      let menu = await page.evaluate(() =>
+        [...document.querySelectorAll(".et_pb_post")].map(
+          (element) => element.innerText
+        )
+      );
+      let splitMenu = [];
+      for (let i = 0; i < menu.length; i++) {
+        splitMenu.push(menu[i].split(/\r?\n/));
+      }
+      return [splitMenu[0][10].slice(0, -8), splitMenu[0][12].slice(0, -8)];
+    } catch (error) {
+      logToConsole(1, "Could not retrieve Linnér's menu", error);
+      return noLunchArray;
     }
-    return [splitMenu[0][10].slice(0, -8), splitMenu[0][12].slice(0, -8)];
   }
 
   async function getSpillMenu() {
-    const page = await browser.newPage();
-    await page.goto(spillUrl);
-    let menu = await page.evaluate(() =>
-      [...document.getElementsByTagName("H3")].map(
-        (element) => element.innerText
-      )
-    );
-    let splitMenu = [];
-    for (let i = 0; i < menu.length; i++) {
-      splitMenu.push(menu[i].split(/\r?\n/));
+    try {
+      const page = await browser.newPage();
+      await page.goto(spillUrl);
+      let menu = await page.evaluate(() =>
+        [...document.getElementsByTagName("H3")].map(
+          (element) => element.innerText
+        )
+      );
+      let splitMenu = [];
+      for (let i = 0; i < menu.length; i++) {
+        splitMenu.push(menu[i].split(/\r?\n/));
+      }
+      return [splitMenu[0][1], splitMenu[0][2]];
+    } catch (error) {
+      logToConsole(1, "Could not retrieve Spill's menu", error);
+      return noLunchArray;
     }
-    return [splitMenu[0][1], splitMenu[0][2]];
+  }
+}
+
+function logToConsole(logType, customMessage, messageObject) {
+  let prefix;
+  switch (logType) {
+    case 1:
+      prefix = "[WARN] ";
+      break;
+    case 2:
+      prefix = "[ERROR] ";
+      break;
+    case 3:
+      prefix = "[INFO] ";
+      break;
+    default:
+      prefix = "[?] ";
+      break;
+  }
+  console.log(prefix + customMessage);
+  if (messageObject) {
+    console.log(messageObject);
   }
 }
 
