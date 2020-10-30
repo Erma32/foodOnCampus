@@ -25,6 +25,8 @@ router.get("/", function (req, res) {
     linnersVeg: foodObject.linners.veg,
     spillDagens: foodObject.spill.dagens,
     spillVeg: foodObject.spill.veg,
+    finnUtDagens: foodObject.finnUt.dagens,
+    finnUtVeg: foodObject.finnUt.veg,
   });
 });
 

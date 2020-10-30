@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer");
 const express = require("express");
+const fetch = require("node-fetch");
 const path = require("path");
 const app = express();
 const port = 3000;
@@ -57,6 +58,10 @@ let foodObject = {
     dagens: "-",
     veg: "-",
   },
+  finnUt: {
+    dagens: "-",
+    veg: "-",
+  },
   spill: {
     dagens: "-",
     veg: "-",
@@ -80,6 +85,7 @@ async function init() {
   let edisonMenu = await getEdisonMenu();
   let inspiraMenu = await getInspiraMenu();
   let linnersMenu = await getLinnersMenu();
+  let finnUtMenu = await getFinnUtMenu();
   let spillMenu = await getSpillMenu();
   await browser.close();
   foodObject = {
@@ -110,6 +116,10 @@ async function init() {
     linners: {
       dagens: linnersMenu[0],
       veg: linnersMenu[1],
+    },
+    finnUt: {
+      dagens: finnUtMenu[0],
+      veg: finnUtMenu[1],
     },
     spill: {
       dagens: spillMenu[0],
@@ -282,6 +292,19 @@ async function init() {
     } catch (error) {
       logToConsole(1, "Could not retrieve Linnér's menu", error);
       return noLunchArray;
+    }
+  }
+
+  async function getFinnUtMenu() {
+    try {
+      let response = {};
+      await fetch("http://www.finnut.se/ajax/menu.json.php")
+        .then((res) => res.json())
+        .then((json) => (response = json));
+      let splitMenu = response[day - 2].content.split(/\r?\n/);
+      return [splitMenu[0], splitMenu[3]];
+    } catch (error) {
+      console.log(error);
     }
   }
 
