@@ -165,7 +165,11 @@ async function init() {
           (element) => element.innerText
         )
       );
-      let splitMenu = menu[0].split("\n").slice(6);
+      let i = 0;
+      while (!menu[i].includes("VECKOMENY")) {
+        i++;
+      }
+      let splitMenu = menu[i].split("\n").slice(6);
       const brygganDayArray = [
         "Måndag",
         "Tisdag:",
@@ -194,12 +198,16 @@ async function init() {
       let dayIndex = cleanedMenu.indexOf(
         cleanedMenu.filter((element) => element.includes(date.getDate()))[0]
       );
-      return [
-        cleanedMenu[dayIndex + 1].substring(3),
-        cleanedMenu[dayIndex + 2].includes("2.")
-          ? cleanedMenu[dayIndex + 2].substring(3)
-          : "-",
-      ];
+      if (dayIndex !== -1) {
+        return [
+          cleanedMenu[dayIndex + 1].substring(3),
+          cleanedMenu[dayIndex + 2].includes("2.")
+            ? cleanedMenu[dayIndex + 2].substring(3)
+            : "-",
+        ];
+      } else {
+        return ["-", "-", "-"];
+      }
     } catch (error) {
       logToConsole(1, "Could not retrieve Hojdpunkten's menu", error);
       return noLunchArray;
